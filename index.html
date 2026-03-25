@@ -298,13 +298,16 @@
             <div>
                 <input type="text" id="spellInput" placeholder="Type spelling..." autocomplete="off" spellcheck="false"
                     autocorrect="off" autocapitalize="off">
-                <button class="btn-check" onclick="checkSpelling()">Check</button>
+                <button class="btn-check" onclick="checkSpelling()">Check ↵</button>
             </div>
 
             <div id="feedback"></div>
 
             <button id="hintBtn" class="btn-hint" onclick="showHint()">Show Answer & Phonetic</button>
             <div id="hintDisplay" style="display:none"></div>
+
+            <button id="meaningBtn" class="btn-hint" onclick="toggleMeaning()" style="background-color: var(--accent-purple); margin-top: 5px;">📖 Show Definition</button>
+            <div id="meaningDisplay" style="display:none; font-size: 0.8rem; color: var(--text-main); background: #f8fafa; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; margin-top: 5px;"></div>
 
             <div class="bottom-bar">
                 <!-- Export on Left -->
@@ -317,7 +320,7 @@
                 </div>
 
                 <!-- Next Word on Right -->
-                <button class="btn-next" onclick="nextWord()">Next Word →</button>
+                <button class="btn-next" onclick="nextWord()">Next Word ▶</button>
             </div>
         </div>
     </div>
@@ -339,6 +342,20 @@
             const reader = new FileReader();
             reader.onload = function (event) { processJson(event.target.result); };
             reader.readAsText(file);
+        });
+
+        // Keyboard shortcuts for spell input
+        document.getElementById('spellInput').addEventListener('keydown', function (e) {
+            // Enter key triggers check spelling
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkSpelling();
+            }
+            // Right arrow key triggers next word
+            else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextWord();
+            }
         });
 
         // Load External File (with CORS fallback)
@@ -369,7 +386,8 @@
                 allWords = data.map(w => ({
                     WORD: w.WORD,
                     RANK: w.RANK || 0,
-                    PHONETIC: w.PHONETIC || ""
+                    PHONETIC: w.PHONETIC || "Phonetic not available",
+                    MEANING: w.MEANING || "Definition not available"
                 }));
                 startSession(allWords);
                 document.getElementById('setup').style.display = 'none';
@@ -431,6 +449,21 @@
             display.innerHTML = `<strong>${wordObj.WORD}</strong> ${wordObj.PHONETIC}`;
         }
 
+        function toggleMeaning() {
+            const wordObj = sessionWords[currentIndex];
+            const display = document.getElementById('meaningDisplay');
+            const button = document.getElementById('meaningBtn');
+
+            if (display.style.display === "none") {
+                display.style.display = "block";
+                display.innerHTML = `<strong>Definition:</strong> ${wordObj.MEANING}`;
+                button.innerHTML = "📖 Hide Definition";
+            } else {
+                display.style.display = "none";
+                button.innerHTML = "📖 Show Definition";
+            }
+        }
+
         function updateScore() {
             document.getElementById('scoreDisplay').innerText = `Score: ${correctCount}/${totalAttempted}`;
         }
@@ -470,6 +503,8 @@
             document.getElementById('feedback').innerHTML = "";
             document.getElementById('hintDisplay').style.display = "none";
             document.getElementById('hintBtn').style.display = "none";
+            document.getElementById('meaningDisplay').style.display = "none";
+            document.getElementById('meaningBtn').innerHTML = "📖 Show Definition";
             document.getElementById('sessionStats').innerText = `Word ${currentIndex + 1}/${sessionWords.length}`;
             document.getElementById('currentRank').value = sessionWords[currentIndex].RANK || 0;
             updateScore();
