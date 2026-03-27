@@ -23,8 +23,12 @@ document.getElementById('spellInput').addEventListener('keydown', function (e) {
         e.preventDefault();
         checkSpelling();
     }
-    // Right arrow key triggers next word
-    else if (e.key === 'ArrowRight') {
+});
+
+// Global shortcut for next word (only when input is NOT focused)
+document.addEventListener('keydown', function (e) {
+    // Right arrow key triggers next word - but only if input field is not focused
+    if (e.key === 'ArrowRight' && document.activeElement !== document.getElementById('spellInput')) {
         e.preventDefault();
         nextWord();
     }
@@ -121,11 +125,17 @@ function checkSpelling() {
             hasEarnedPoint = true;
             updateScore();
         }
+        // Move focus away from input field so user can use arrow key for next word
+        document.getElementById('spellInput').blur();
     } else {
         attempts++;
         feedback.innerHTML = `✗ Try again (${attempts}/3)`;
         feedback.className = "wrong";
-        if (attempts >= 3) document.getElementById('hintBtn').style.display = "block";
+        if (attempts >= 3) {
+            document.getElementById('hintBtn').style.display = "block";
+            // Prevent earning a point after 3 wrong attempts
+            hasEarnedPoint = true;
+        }
     }
 }
 
